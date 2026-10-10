@@ -1,0 +1,3 @@
+dependencies:
+  espressif/led_strip: "^3.0.0"
+  chill-sam/ssd1306: "^1.1.2"
