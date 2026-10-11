@@ -1,0 +1,36 @@
+dependencies:
+  chill-sam/ssd1306:
+    component_hash: 6be33faa92d913d198ef61f70d58708c4cebd5c93e74cf3e2a43446877cf04f6
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.3'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    targets:
+    - esp32
+    - esp32s2
+    - esp32s3
+    - esp32c3
+    version: 1.1.2
+  espressif/led_strip:
+    component_hash: 097f698887601de00bed7ff58f91b9e074fa1ae1bcf53582034b01191cc88e9f
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.2'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 3.1.0~1
+  idf:
+    source:
+      type: idf
+    version: 6.1.0
+direct_dependencies:
+- chill-sam/ssd1306
+- espressif/led_strip
+manifest_hash: 67307fa5d7bf1ae6c77586e952b3b786b206c642ab63737953951f3ea1f23d92
+target: esp32
+version: 3.0.0
