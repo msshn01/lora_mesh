@@ -308,7 +308,8 @@ typedef struct __attribute__((packed)) {
     uint16_t sender_id;    // gönderenin kimliği (MAC'in son 2 baytı)
     uint16_t sequence;     // her pakette 1 artar
     char text[20];
-} test_packet_t;           // toplam 24 bayt
+} 
+test_packet_t;           // toplam 24 bayt
 
 // ---------- Ana program ----------
 
