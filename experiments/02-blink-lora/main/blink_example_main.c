@@ -1,13 +1,3 @@
-/* LoRa gönder + dinle denemesi (03-lora-txrx)
-
-   Her kart aynı kodu çalıştırır:
-   - Radyo zamanının çoğunda dinler, gelen paketi ekrana ve loga yazar.
-   - 5-6 saniyede bir kendi paketini yayınlar, sonra hemen dinlemeye döner.
-
-   LED kodu bu denemede yok; LED + ekran hali experiments/01-blink-oled içinde duruyor.
-*/
-
-// ---------- Kütüphaneler ----------
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -163,7 +153,7 @@ static void lora_write_reg(uint8_t reg, uint8_t value)
     spi_device_polling_transmit(s_lora_spi, &t);
 }
 
-static uint8_t lora_read_reg(uint8_t reg)
+static uint8_t lora_read_reg(uint8_t reg) // 1 bayt okur geldimi diye bakmak için 
 {
     spi_transaction_t t = {
         .flags = SPI_TRANS_USE_TXDATA | SPI_TRANS_USE_RXDATA,
@@ -251,25 +241,25 @@ static void lora_init(void)
 static void lora_send(const uint8_t *data, int length)
 {
     lora_write_reg(REG_OP_MODE, MODE_STANDBY);      // dinlemeyi bırak
-    lora_write_reg(REG_FIFO_ADDR_PTR, 0x00);
-    lora_write_fifo(data, length);
-    lora_write_reg(REG_PAYLOAD_LENGTH, length);
+    lora_write_reg(REG_FIFO_ADDR_PTR, 0x00);           // FIFO başına git
+    lora_write_fifo(data, length);                                  // veriyi FIFO'ya yaz
+    lora_write_reg(REG_PAYLOAD_LENGTH, length);          // gönderilecek uzunluğu yaz
     lora_write_reg(REG_IRQ_FLAGS, 0xFF);            // eski bayrakları temizle
-    lora_write_reg(REG_OP_MODE, MODE_TX);
+    lora_write_reg(REG_OP_MODE, MODE_TX);              // gönderime başla
 
-    while ((lora_read_reg(REG_IRQ_FLAGS) & IRQ_TX_DONE) == 0) {
-        vTaskDelay(pdMS_TO_TICKS(10));
+    while ((lora_read_reg(REG_IRQ_FLAGS) & IRQ_TX_DONE) == 0) {    // gönderim bitene kadar bekle
+        vTaskDelay(pdMS_TO_TICKS(10));// 10 ms bekle, CPU'yu serbest bırak
     }
-    lora_write_reg(REG_IRQ_FLAGS, 0xFF);
+    lora_write_reg(REG_IRQ_FLAGS, 0xFF); // bayrakları temizle
 }
 
 // ---------- Radyo: dinleme ----------
 
 static void lora_start_receive(void)
 {
-    lora_write_reg(REG_FIFO_ADDR_PTR, 0x00);
-    lora_write_reg(REG_IRQ_FLAGS, 0xFF);
-    lora_write_reg(REG_OP_MODE, MODE_RX_CONTINUOUS);
+    lora_write_reg(REG_FIFO_ADDR_PTR, 0x00); // FIFO başına git
+    lora_write_reg(REG_IRQ_FLAGS, 0xFF); // eski bayrakları temizle
+    lora_write_reg(REG_OP_MODE, MODE_RX_CONTINUOUS); // sürekli dinlemeye başla
 }
 
 // Paket geldiyse okur.
@@ -292,7 +282,7 @@ static int lora_receive(uint8_t *data, int max_length, int *rssi, float *snr)
     }
 
     // FIFO'da paketin başladığı yere git, baytları tek tek oku
-    lora_write_reg(REG_FIFO_ADDR_PTR, lora_read_reg(REG_FIFO_RX_CURRENT_ADDR));
+    lora_write_reg(REG_FIFO_ADDR_PTR, lora_read_reg(REG_FIFO_RX_CURRENT_ADDR)); 
     for (int i = 0; i < length; i++) {
         data[i] = lora_read_reg(REG_FIFO);          // her okumada FIFO işaretçisi 1 ilerler
     }
@@ -384,7 +374,7 @@ void app_main(void)
             snprintf(packet.text, sizeof(packet.text), "merhaba");
 
             int64_t start_us = esp_timer_get_time();
-            lora_send((uint8_t *)&packet, sizeof(packet));
+            lora_send((uint8_t *)&packet, sizeof(packet)); // gönderim tamamlanana kadar bekler
             int64_t airtime_ms = (esp_timer_get_time() - start_us) / 1000;
             lora_start_receive();                           // hemen dinlemeye dön
 
@@ -392,8 +382,8 @@ void app_main(void)
             snprintf(tx_line, sizeof(tx_line), "TX #%u %lldms", tx_sequence, airtime_ms);
             display_status(esp_id, tx_line, rx_line, signal_line);
 
-            tx_sequence++;
-            next_tx_time_us = esp_timer_get_time() + (5000 + esp_random() % 1000) * 1000LL;
+            tx_sequence++; // sıradaki paket numarası
+            next_tx_time_us = esp_timer_get_time() + (5000 + esp_random() % 1000) * 1000LL; // 5-6 saniye sonra tekrar gönder
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));
