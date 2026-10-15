@@ -483,16 +483,17 @@ static void handle_packet(mesh_packet_t *p, int rssi)
         text_slice(p->text, 21, line3, sizeof(line3));
         snprintf(line4, sizeof(line4), "%s", route_str);
         display_show(line1, line2, line3, line4);
+        
 
         // ONAY hazırla: aynı paket, yönü ters
-        mesh_packet_t ack = *p;                     // metin ve msg_id aynı kalır
+        mesh_packet_t ack = *p;                     
         ack.type      = MSG_TYPE_ACK;
-        ack.dest_id   = p->source_id;               // göndericiye
-        ack.source_id = s_my_id;                    // kendimden
-        for (int i = 0; i < MAX_HOPS; i++) {        // rotayı sıfırla
+        ack.dest_id   = p->source_id;               
+        ack.source_id = s_my_id;                  
+        for (int i = 0; i < MAX_HOPS; i++) {        
             ack.route[i] = 0;
         }
-        ack.route[0]  = s_my_id;                    // sadece kendimi yaz
+        ack.route[0]  = s_my_id;                    
         ack.hop_count = 1;
 
         vTaskDelay(pdMS_TO_TICKS(100 + esp_random() % 400));   // aracı aktarırken çarpışmasın
